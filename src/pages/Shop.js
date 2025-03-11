@@ -266,7 +266,7 @@ const Shop = () => {
         <div style={horizontalScrollStyle}>
           <div style={directFilterButtonStyle} onClick={() => directFilterChange("")}>All</div>
           <div style={directFilterButtonStyle} onClick={() => directFilterChange("Shoes")}>Shoes</div>
-          <div style={directFilterButtonStyle} onClick={() => directFilterChange("Tshirts")}>T-Shirts</div>
+          <div style={directFilterButtonStyle} onClick={() => directFilterChange("T-Shirts")}>T-Shirts</div>
           <div style={directFilterButtonStyle} onClick={() => directFilterChange("Accessories")}>Tracks</div>
           <div style={directFilterButtonStyle} onClick={() => directFilterChange("Shorts")}>Shorts</div>
           <div style={directFilterButtonStyle} onClick={() => directFilterChange("Accessories")}>Accessories</div>
