@@ -13,8 +13,7 @@ const Shop = () => {
   const [applyFilter, setApplyFilter] = useState(false);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const [showFilter, setShowFilter] = useState(false);
-
-  
+  const [sortBy, setSortBy] = useState("Sort By");
 
   const shopStyle = {
     padding: screenWidth > 768 ? "0" : "20px",
@@ -31,7 +30,6 @@ const Shop = () => {
   };
 
   const mainContainerStyle = {
-    height: "calc(100vh-3.5rem-76px)",
     display: "flex",
     flexDirection: screenWidth > 768 ? "row" : "column",
     gap: "20px",
@@ -96,17 +94,16 @@ const Shop = () => {
     position: "sticky",
     left: "0",
     bottom: "0",
-    top: "132.67px",
+    top: "76px",
     width: "240px",
     paddingLeft: "20px",
-    paddingTop: "20px",
+    paddingTop: "40px",
     backgroundColor: "red",
-    height: "calc(100vh - 3.5rem - 76px)",
+    height: "calc(100vh-76px)",
     zIndex: "1000",
     overflowY: "auto",
     borderRight: "1px solid #ddd",
     borderRadius: "0.5rem",
-
   }
 
   const horizontalScrollStyle = {
@@ -131,7 +128,6 @@ const Shop = () => {
   };
 
   const sortAndHideStyle = {
-    //marginLeft:"260px",
     position: "sticky",
     top: "76px",
     backgroundColor: "blue",
@@ -140,14 +136,19 @@ const Shop = () => {
     padding: "10px 20px",
     boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
     zIndex: "1000",
+    marginLeft: "262px",
+    alignItems: "center"
   };
 
   const sortSelectStyle = {
+    backgroundColor: "#f4f4f4",
     padding: "8px 15px",
     borderRadius: "5px",
     border: "1px solid #ccc",
     fontSize: "16px",
-    marginRight: "20px"
+    marginRight: "20px",
+    height: "38x",
+    width: "150px",
   };
 
   const hideFilterButtonStyle = {
@@ -156,7 +157,35 @@ const Shop = () => {
     borderRadius: "5px",
     cursor: "pointer",
     textTransform: "capitalize",
-    marginLeft: "20px"
+    marginLeft: "20px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    setSortBy(value);
+    sortProducts(value);
+  };
+
+  const sortProducts = (sortOption) => {
+    let sortedProducts = [...products];
+    switch (sortOption) {
+      case "newest":
+        sortedProducts = sortedProducts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case "price-desc":
+        sortedProducts = sortedProducts.sort((a, b) => b.price - a.price);
+        break;
+      case "price-asc":
+        sortedProducts = sortedProducts.sort((a, b) => a.price - b.price);
+        break;
+      default:
+        break;
+    }
+    setProducts(sortedProducts);
   };
 
   const handleFilterChange = (e) => {
@@ -330,15 +359,15 @@ const Shop = () => {
           <button style={hideFilterButtonStyle} onClick={toggleFilter}>
             {showFilter ? "Hide Filters" : "Show Filters"}
           </button>
-          <button style={hideFilterButtonStyle}>
-            <select style={sortSelectStyle}>
+          <span>
+            <select style={sortSelectStyle} value={sortBy} onChange={handleSortChange}>
+              <option value="Sort By">Sort By</option>
               <option value="featured">Featured</option>
               <option value="newest">Newest</option>
               <option value="price-desc">Price: High - Low</option>
               <option value="price-asc">Price: Low - High</option>
             </select>
-            Sortby
-          </button>
+          </span>
         </div>
       )}
 
@@ -378,16 +407,6 @@ const Shop = () => {
               <button onClick={() => setApplyFilter(true)}>Apply</button>
               <button onClick={resetFilters} style={{marginLeft: "10px"}}>Reset</button>
             </div>
-          </div>
-          <div className="product-list" style={productListStyle}>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product}/>
-            ))}
-          </div>
-          <div className="product-list" style={productListStyle}>
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product}/>
-            ))}
           </div>
           <div className="product-list" style={productListStyle}>
             {products.map((product) => (
