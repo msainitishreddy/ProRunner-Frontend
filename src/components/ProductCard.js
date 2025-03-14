@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import {FaRegHeart, FaHeart} from "react-icons/fa";
+import {FaRegHeart} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({product}) => {
     
     const imgSrc = product.imageUrl || "https://via.placeholder.com/200";
     const [error,setError] = useState("");
+    const [cartDetails, setCartDetails] = useState(null);
+    const navigate = useNavigate();
     
     const handleAddToCart = async (productId, quantity) => {
         const token = localStorage.getItem("authToken");
@@ -33,8 +36,10 @@ const ProductCard = ({product}) => {
                 method: "POST",
                 headers: headers,
             });
-
+            
             if (response.ok) {
+                const updatedCart = await response.json();
+                setCartDetails(updatedCart.data);
                 alert("Product added to cart successfully...");
             } else {
                 setError("Error while adding product to the cart.");
@@ -44,7 +49,41 @@ const ProductCard = ({product}) => {
             setError("Error while adding product to cart...");
             console.error("Error: ", error);
         }
+        navigate("/cart");
     };
+
+    const handleAddToWishlist = async (productId) => {
+        const token = localStorage.getItem("authToken");
+        const userId = localStorage.getItem("userId");
+
+        if (!userId) {
+            setError("Error: User is not logged in");
+            alert("Please login");
+            return;
+        }
+        
+        let url = `http://localhost:8080/api/wishlist/add?userId=${userId}&productId=${productId}`;
+        let headers = {
+            "Authorization" : `Bearer ${token}`,
+            "Content-Type" : "application/json",
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: headers,
+            });
+
+            if(response.ok){
+                alert("Product added to wishlist successfully...");
+            } else {
+                setError("Error while adding the product to the wishlist...");
+            }
+        } catch (error) {
+            setError("Error when adding the product to the Wishlist");
+            console.error("Error: ", error);
+        }
+    }
 
 
 
@@ -106,7 +145,7 @@ const ProductCard = ({product}) => {
             <h3 style={nameStyle}>{product.name}</h3>
             <p style={priceStyle}>${product.price}</p>
             <div style={{display: "flex", flexWrap: "wrap", justifyContent:"space-evenly", alignItems: "center"}}>
-                <FaRegHeart style={HeartIconStyle}/>
+                <FaRegHeart style={HeartIconStyle} onClick={() => handleAddToWishlist(product.id)}/>
                 <button style={buttonStyle} onClick={()=> handleAddToCart(product.id,1)}>
                     Add to Cart
                 </button>

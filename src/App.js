@@ -7,6 +7,7 @@ import Shop from "./pages/Shop";
 import  Cart from "./pages/Cart.js";
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Wishlist from './pages/Wishlist.js';
 function App() {
 
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/cart/:cartId" Component={<Cart />} />
         <Route path="/" element={<Home/>} />
         <Route path="/shop" element={<Shop/>} />
+        <Route path="/wishlist" element={<Wishlist/>} />
         <Route path="/cart" element={<Cart/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

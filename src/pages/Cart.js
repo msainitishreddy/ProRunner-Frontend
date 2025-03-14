@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
 
@@ -6,9 +6,52 @@ const Cart = () => {
   const [cartDetails, setCartDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isMerged, setIsMerged] = useState(false);
   const navigate = useNavigate();
 
-  const mergeCarts = async () => {
+  const fetchCart = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
+    const userId = localStorage.getItem("userId");
+    const sessionId = localStorage.getItem("sessionId");
+
+    if(token && userId){
+      try {
+        const response = await fetch(`http://localhost:8080/api/cart/user/${userId}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCartDetails(data.data);
+        } else {
+          console.error("Failed to fetch cart details");
+        }
+      } catch (error) {
+          console.error("Error fetching cart details:", error);
+      }
+    } else if(sessionId){
+      try{
+        const response = await fetch(`http://localhost:8080/api/cart/session/${sessionId}`,{
+          method: "GET"
+        });
+        if(response.ok){
+          const data = await response.json();
+          setCartDetails(data.data);
+        } else {
+          console.error("Failed to fetch cart details for a guest user...");
+        }
+      } catch(error){
+        console.error("Error while fetching cart details for a guest user: ", error);
+      }
+    } else{
+      navigate("/login");
+    }
+  },[navigate]);
+
+  const mergeCarts = useCallback(async () => {
     const token = localStorage.getItem("authToken");
     const userId = localStorage.getItem("userId");
     const sessionId = localStorage.getItem("sessionId");
@@ -25,8 +68,12 @@ const Cart = () => {
         });
 
         const data = await response.json();
+        console.log("Merge Response Data:", data);
+
         if(response.ok){
-          setCartDetails(data.data);
+          await fetchCart();
+          localStorage.removeItem("sessionId");
+          setIsMerged(true);
         } else {
           setError(data.message || "Failed to merge carts");
         }
@@ -39,7 +86,7 @@ const Cart = () => {
     }else {
       console.error("Missing sessionId, userId, or token for cart merge");
     }
-  };
+  },[fetchCart]);
 
   const handleQuantityChange = async(productId, increment) => {
     const token = localStorage.getItem("authToken");
@@ -56,13 +103,12 @@ const Cart = () => {
       const response = await fetch (url,{
         method: "PATCH",
         headers : {
-          "Authentication": token ? `Bearer ${token}` : "",
+          "Authorization": token ? `Bearer ${token}` : "",
         },
       });
 
       if(response.ok){
-        const data =  await response.json();
-        setCartDetails(data.data);
+        await fetchCart();
       } else {
         console.error("Failed to update the quantity");
       }
@@ -77,7 +123,7 @@ const Cart = () => {
     const userId = localStorage.getItem("userId");
 
     const url = token
-      ? `http://localhost:8080/api/cart/remove/${productId}?userId=${userId}` // Corrected URL
+      ? `http://localhost:8080/api/cart/remove/${productId}?userId=${userId}`
       : `http://localhost:8080/api/cart/remove/${productId}?sessionId=${sessionId}`;
 
     try {
@@ -89,8 +135,7 @@ const Cart = () => {
       });
 
       if(response.ok){
-        const data = await response.json();
-        setCartDetails(data.data);
+        await fetchCart();
       } else {
         console.error("Error while removing the product from the cart...",response.statusText);
         alert("Failed to remove product from cart.");
@@ -101,62 +146,20 @@ const Cart = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      const token = localStorage.getItem("authToken");
-      const userId = localStorage.getItem("userId");
-      const sessionId = localStorage.getItem("sessionId");
-
-      if(token && userId){
-        try {
-          const response = await fetch(`http://localhost:8080/api/cart/user/${userId}`, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setCartDetails(data.data);
-          } else {
-            console.error("Failed to fetch cart details");
-          }
-        } catch (error) {
-            console.error("Error fetching cart details:", error);
-        }
-      } else if(sessionId){
-        try{
-          const response = await fetch(`http://localhost:8080/api/cart/session/${sessionId}`,{
-            method: "GET"
-          });
-          if(response.ok){
-            const data = await response.json();
-            setCartDetails(data.data);
-          } else {
-            console.error("Failed to fetch cart details for a guest user...");
-          }
-        } catch(error){
-          console.error("Error while fetching cart details for a guest user: ", error);
-        }
-      } else{
-        navigate("/login");
-      }
-    };
-
+  useEffect(()=>{
     fetchCart();
-  }, [navigate]);
+  },[fetchCart]);
 
-  useEffect(() => {
-    if(cartDetails && cartDetails.cartProducts && cartDetails.cartProducts.length > 0){
-      const guestCart = cartDetails;
+  // Merge guest and user carts if the user logs in and the guest cart is present
+  useEffect(()=>{
+    const token = localStorage.getItem("authToken");
+    const userId = localStorage.getItem("userId");
+    const sessionId = localStorage.getItem("sessionId");
 
-      const userId = localStorage.getItem("userId");
-      if(userId && guestCart){
-        mergeCarts(guestCart);
-      }
+    if (!isMerged && token && userId && sessionId) {
+      mergeCarts();
     }
-  }, [cartDetails]);
+  }, [isMerged, mergeCarts]);
 
   console.log("Cart Details State:", cartDetails);
 

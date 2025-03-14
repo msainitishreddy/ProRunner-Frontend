@@ -120,6 +120,9 @@ const Header = () => {
                         <Link to="/shop" style={navLinkStyle}>Shop</Link>
                     </li>
                     <li style={navItemStyle}>
+                        <Link to="/wishlist" style={navLinkStyle}>Wishlist</Link>
+                    </li>
+                    <li style={navItemStyle}>
                         <Link to="/cart" style={navLinkStyle}>Cart</Link>
                     </li>
                     {isLoggedIn ? (
@@ -154,6 +157,9 @@ const Header = () => {
                     </li>
                     <li style={navItemStyle}>
                         <Link to="/cart" style={navLinkStyle}>Cart</Link>
+                    </li>
+                    <li style={navItemStyle}>
+                        <Link to="/wishlist" style={navLinkStyle}>Wishlist</Link>
                     </li>
                     {isLoggedIn ? (
                         <li style={navItemStyle}>

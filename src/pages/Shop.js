@@ -32,7 +32,7 @@ const Shop = () => {
   const mainContainerStyle = {
     display: "flex",
     flexDirection: screenWidth > 768 ? "row" : "column",
-    gap: "20px",
+    gap: "2px",
     flexWrap: "wrap",
     alignItems: "flex-start",
   };
@@ -50,6 +50,7 @@ const Shop = () => {
 
   const filterFormStyle = {
     display: "flex",
+    flexDirection: "column",
     gap: "10px",
     marginBottom: "20px",
     flexWrap: "wrap",
@@ -98,11 +99,12 @@ const Shop = () => {
     width: "240px",
     paddingLeft: "20px",
     paddingTop: "40px",
-    backgroundColor: "red",
+    backgroundColor: "#fff",
+    borderTop: "1px solid #333",
+    borderRight: "1px solid #333",
     height: "calc(100vh-76px)",
     zIndex: "1000",
     overflowY: "auto",
-    borderRight: "1px solid #ddd",
     borderRadius: "0.5rem",
   }
 
@@ -130,14 +132,15 @@ const Shop = () => {
   const sortAndHideStyle = {
     position: "sticky",
     top: "76px",
-    backgroundColor: "blue",
+    backgroundColor: "white",
     display: "flex",
     justifyContent: "flex-end",
     padding: "10px 20px",
     boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
     zIndex: "1000",
-    marginLeft: "262px",
-    alignItems: "center"
+    marginLeft: "260px",
+    alignItems: "center",
+    border: "0.5px solid #fff"
   };
 
   const sortSelectStyle = {
