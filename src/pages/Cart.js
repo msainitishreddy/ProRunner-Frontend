@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
 
@@ -10,46 +10,40 @@ const Cart = () => {
   const navigate = useNavigate();
 
   const fetchCart = useCallback(async () => {
+    setLoading(true);
     const token = localStorage.getItem("authToken");
     const userId = localStorage.getItem("userId");
     const sessionId = localStorage.getItem("sessionId");
 
-    if(token && userId){
-      try {
-        const response = await fetch(`http://localhost:8080/api/cart/user/${userId}`, {
+    try {
+      let response;
+      if (token && userId) {
+        response = await fetch(`http://localhost:8080/api/cart/user/${userId}`, {
           method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
+          headers: { "Authorization": `Bearer ${token}` }
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCartDetails(data.data);
-        } else {
-          console.error("Failed to fetch cart details");
-        }
-      } catch (error) {
-          console.error("Error fetching cart details:", error);
-      }
-    } else if(sessionId){
-      try{
-        const response = await fetch(`http://localhost:8080/api/cart/session/${sessionId}`,{
+      } else if (sessionId) {
+        response = await fetch(`http://localhost:8080/api/cart/session/${sessionId}`, {
           method: "GET"
         });
-        if(response.ok){
-          const data = await response.json();
-          setCartDetails(data.data);
-        } else {
-          console.error("Failed to fetch cart details for a guest user...");
-        }
-      } catch(error){
-        console.error("Error while fetching cart details for a guest user: ", error);
+      } else {
+        navigate("/login");
+        return;
       }
-    } else{
-      navigate("/login");
+
+      if (response.ok) {
+        const data = await response.json();
+        setCartDetails(data?.data || {});
+        localStorage.setItem("cartId", data?.data?.id);
+      } else {
+        console.error("Failed to fetch cart details");
+      }
+    } catch (error) {
+      console.error("Error fetching cart details:", error);
+    } finally {
+      setLoading(false);
     }
-  },[navigate]);
+  }, [navigate]);
 
   const mergeCarts = useCallback(async () => {
     const token = localStorage.getItem("authToken");
@@ -67,14 +61,12 @@ const Cart = () => {
           },
         });
 
-        const data = await response.json();
-        console.log("Merge Response Data:", data);
-
         if(response.ok){
           await fetchCart();
           localStorage.removeItem("sessionId");
           setIsMerged(true);
         } else {
+          const data = await response.json();
           setError(data.message || "Failed to merge carts");
         }
       } catch (error) {
@@ -116,6 +108,7 @@ const Cart = () => {
       console.error("Error updating the quantity: ",error);
     }
   }
+  
 
   const handleRemoveProduct = async(productId) => {
     const token = localStorage.getItem("authToken");
@@ -166,7 +159,9 @@ const Cart = () => {
   return (
     <div className="cartContainer">
       <h1>Your Cart</h1>
-      {cartDetails ? (
+      {loading ? (
+        <p>Loading cart products...</p>
+      ) : cartDetails ? (
         <div>
           <h2 className="cartItemsHeader">Products in your cart</h2>
           <div className="layout-main">
@@ -216,7 +211,10 @@ const Cart = () => {
             </div>
             <div className="cartSummary">
               <h3 className="cartSummaryText">Total Price: ${cartDetails.totalPrice}</h3>
-              <button className="checkoutButton"> Proceed to Checkout </button>
+              <button 
+                className="checkoutButton"
+                onClick={() => navigate("/checkout")}
+              > Proceed to Checkout </button>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ProductCard from "../components/ProductCard";
+import _ from 'lodash';
 
 const Shop = () => {
 
@@ -201,6 +202,7 @@ const Shop = () => {
 
   const filterProducts = useCallback(async() => {
     setLoading(true);
+
     const validatedMinPrice = minPrice !== "" && !isNaN(minPrice) ? minPrice : null;
     const validatedMaxPrice = maxPrice !== "" && !isNaN(maxPrice) ? maxPrice : null;
 
@@ -229,6 +231,9 @@ const Shop = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      if(products.length>0){
+        return;
+      }
       try{
         const response = await fetch("http://localhost:8080/api/products");
         const data =  await response.json();
@@ -246,12 +251,12 @@ const Shop = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, [products.length]);
 
   useEffect(() => {
-    const handleResize = () => {
+    const handleResize = _.debounce(() => {
       setScreenWidth(window.innerWidth);
-    };
+    },300);
     window.addEventListener("resize", handleResize);
 
     return () => window.removeEventListener("resize", handleResize);
@@ -381,7 +386,7 @@ const Shop = () => {
             <h3>Filter</h3>
             <div style={filterFormStyle}>
               <div style={directFilterButtonStyle} onClick={() => directFilterChange("Shoes")}>Shoes</div>
-              <div style={directFilterButtonStyle} onClick={() => directFilterChange("Tshirts")}>T-Shirts</div>
+              <div style={directFilterButtonStyle} onClick={() => directFilterChange("T-Shirts")}>T-Shirts</div>
               <div style={directFilterButtonStyle} onClick={() => directFilterChange("Tracks")}>Tracks</div>
               <div style={directFilterButtonStyle} onClick={() => directFilterChange("Shorts")}>Shorts</div>
               <div style={directFilterButtonStyle} onClick={() => directFilterChange("Accessories")}>Accessories</div>
@@ -408,7 +413,7 @@ const Shop = () => {
               />
 
               <button onClick={() => setApplyFilter(true)}>Apply</button>
-              <button onClick={resetFilters} style={{marginLeft: "10px"}}>Reset</button>
+              <button onClick={resetFilters}>Reset</button>
             </div>
           </div>
           <div className="product-list" style={productListStyle}>

@@ -20,7 +20,19 @@ const Header = () => {
 
     useEffect(() => {
         window.addEventListener('resize', updateWindowDimensions);
-        return () => window.removeEventListener('resize', updateWindowDimensions);
+        //return () => window.removeEventListener('resize', updateWindowDimensions);
+        const handleAuthChange = () => {
+            setIsLoggedIn(!!localStorage.getItem("authToken"));
+        };
+
+        // Listen for both custom and storage events
+        window.addEventListener("authStatusChange", handleAuthChange);
+
+        return () => {
+            window.removeEventListener('resize', updateWindowDimensions);
+            window.removeEventListener("authStatusChange", handleAuthChange);
+        };
+
     }, []);
 
     const handleLogout = () => {
@@ -28,7 +40,16 @@ const Header = () => {
         localStorage.removeItem("userId");
         setIsLoggedIn(false);
         navigate("/");
+        window.dispatchEvent(new Event("authStatusChange"));
     }
+
+    const handleWishlistClick = (e) => {
+        if (!localStorage.getItem("authToken")) {
+            e.preventDefault();
+            alert("Please login to add products to your wishlist.");
+            navigate("/login");
+        }
+    };
     
     const headerStyle = {
         height: "3.5rem",
@@ -120,7 +141,7 @@ const Header = () => {
                         <Link to="/shop" style={navLinkStyle}>Shop</Link>
                     </li>
                     <li style={navItemStyle}>
-                        <Link to="/wishlist" style={navLinkStyle}>Wishlist</Link>
+                        <Link to="/wishlist" onClick={handleWishlistClick} style={navLinkStyle}>Wishlist</Link>
                     </li>
                     <li style={navItemStyle}>
                         <Link to="/cart" style={navLinkStyle}>Cart</Link>
@@ -159,7 +180,7 @@ const Header = () => {
                         <Link to="/cart" style={navLinkStyle}>Cart</Link>
                     </li>
                     <li style={navItemStyle}>
-                        <Link to="/wishlist" style={navLinkStyle}>Wishlist</Link>
+                        <Link to="/wishlist" onClick={handleWishlistClick} style={navLinkStyle}>Wishlist</Link>
                     </li>
                     {isLoggedIn ? (
                         <li style={navItemStyle}>

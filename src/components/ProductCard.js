@@ -10,6 +10,11 @@ const ProductCard = ({product}) => {
     const navigate = useNavigate();
     
     const handleAddToCart = async (productId, quantity) => {
+
+        if (cartDetails && cartDetails.some(item => item.id === productId)) {
+            alert("Product is already in the cart!");
+            return;
+        }
         const token = localStorage.getItem("authToken");
         const sessionId = localStorage.getItem("sessionId");
         const userId = localStorage.getItem("userId");
@@ -57,8 +62,8 @@ const ProductCard = ({product}) => {
         const userId = localStorage.getItem("userId");
 
         if (!userId) {
-            setError("Error: User is not logged in");
             alert("Please login");
+            navigate("/login");
             return;
         }
         

@@ -43,6 +43,9 @@ const Login = () => {
         localStorage.setItem("userId", userId);
         console.log("userId: ", userId);
 
+        // Dispatch custom event to notify header of login status change
+        window.dispatchEvent(new Event("authStatusChange"));
+
         alert("Login successful!");
         navigate("/");
       } else {

@@ -8,6 +8,8 @@ import  Cart from "./pages/Cart.js";
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Wishlist from './pages/Wishlist.js';
+import CheckoutPage from './pages/CheckoutPage.js';
+import AddressPage from './pages/AddressPage.js';
 function App() {
 
   return (
@@ -21,6 +23,9 @@ function App() {
         <Route path="/cart" element={<Cart/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/addresses" element={<AddressPage />} />
+        <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
     </Router>
   );

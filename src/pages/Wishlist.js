@@ -1,46 +1,73 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 
 const Wishlist = () => {
     const [wishlistDetails, setWishlistDetails] = useState(null);
     const [loading, setLoading] =  useState(true);
     const [error, setError] = useState(null);
+    const [removeError, setRemoveError] = useState(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchWishlist = async () => {
-            const token = localStorage.getItem("authToken");
-            const userId = localStorage.getItem("userId");
+    const fetchWishlist = useCallback( async () => {
+        const token = localStorage.getItem("authToken");
+        const userId = localStorage.getItem("userId");
 
-            if(token && userId){
-                try{
-                    const response = await fetch(`http://localhost:8080/api/wishlist/user?userId=${userId}`, {
-                        method: "GET",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                        },
-                    });
-            
-                    if(response.ok) {
-                        const data = await response.json();
-                        console.log("Wishlish response data: ", data);
-                        setWishlistDetails(data.data);
-                    } else {
-                        setError("Failed to fetch wishlist details");
-                    }
-                } catch (error) {
-                    setError("Error fetching Wishlist details: "+ error.message);
-                } finally {
-                    setLoading(false);
+        if(token && userId){
+            try{
+                const response = await fetch(`http://localhost:8080/api/wishlist/user?userId=${userId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+                if(response.ok) {
+                    const data = await response.json();
+                    console.log("Wishlist response data: ", data);
+                    setWishlistDetails(data.data);
+                } else {
+                    setError("Failed to fetch wishlist details");
                 }
-            } else {
-                navigate("/shop");
+            } catch (error) {
+                setError("Error fetching Wishlist details: "+ error.message);
+            } finally {
+                setLoading(false);
             }
-        };
-
-        fetchWishlist();
+        } else {
+            navigate("/shop");
+        }
     }, [navigate]);
 
+    const handleRemoveProduct = async(productId) => {
+        const token = localStorage.getItem("authToken");
+        const userId = localStorage.getItem("userId");
+
+        const url = `http://localhost:8080/api/wishlist/remove?userId=${userId}&productId=${productId}`
+
+        try {
+            const response = await fetch(url, {
+                method: "DELETE",
+                headers: {"Authorization" : `Bearer ${token}`,
+                },
+            });
+            
+            if(response.ok){
+                setWishlistDetails((prevDetails) => ({
+                    ...prevDetails,
+                    items: prevDetails.items.filter((product) => product.productId !== productId)
+                }));
+            } else {
+                console.error("Error occurred while removing the product...", response.statusText);
+                alert("Failed to remove product from wishlist");
+            }
+        } catch (error){
+            console.error("Error while removing the product from the wishlist ", error);
+            alert("An error occurred while rmeoving the product.");
+        }
+    };
+
+    useEffect (()=>{
+        fetchWishlist();
+    },[fetchWishlist]);
     
     console.log("Wishlist Details state: ", wishlistDetails);
 
@@ -109,7 +136,7 @@ const Wishlist = () => {
             ) : (
                 <div>
                     <h2>Products in your wishlist</h2>
-                    {wishlistDetails && wishlistDetails.items && wishlistDetails.items.length > 0 ? (
+                    {wishlistDetails?.items?.length > 0 ? (
                         <div style={styles.productGrid}>
                             {wishlistDetails.items.map((product) => (
                                 <div key={product.id} product = {product} style={styles.productCard}>
@@ -124,12 +151,17 @@ const Wishlist = () => {
                                         <p style={styles.productDetails}>Color: {product.color}</p>
                                         <p style={styles.productPrice}>Price: ${product.unitPrice}</p>
                                     </div>
-                                    <button style={styles.removeButton}>Remove</button>
+                                    <button 
+                                    style={styles.removeButton}
+                                    onClick={()=>handleRemoveProduct(product.productId)}>
+                                        Remove
+                                    </button>
+                                    {removeError && <p style={{ color: "red" }}>{removeError}</p>}
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p>Your wishlist is empty</p>
+                        <p>Your wishlist is empty. <a href="/shop">Explore products</a> to add your favorites!</p>
                     )}
                 </div>
             )}
